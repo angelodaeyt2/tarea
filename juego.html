@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Minijuego Identidad Afrodescendiente</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #405c91;
+      color: white;
+      text-align: center;
+    }
+    .slide {
+      display: none;
+  
+      position: relative;
+    }
+    .active {
+      display: block;
+    }
+    button {
+      padding: 1rem 2rem;
+      margin: 1rem;
+      background-color: #7c3aed;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    .start-image {
+      cursor: pointer;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .fullscreen-image {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      cursor: pointer;
+    }
+    .card-container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 3rem;
+      padding: 2rem;
+    }
+    .card {
+      flex: 0 0 auto;
+      width: 320px;
+      height: 460px;
+      background-color: #ffffff;
+      color: black;
+      border-radius: 1rem;
+      cursor: pointer;
+      overflow: hidden;
+      position: relative;
+      perspective: 1000px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease;
+    }
+    .card:hover {
+      transform: scale(1.05);
+    }
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.8s;
+      transform-style: preserve-3d;
+    }
+    .card.revealed .card-inner {
+      transform: rotateY(180deg);
+    }
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 1rem;
+    }
+    .card-front {
+      background-color: #9b6fe8;
+    }
+    .card-back {
+      background-color: #405C91;
+      color: black;
+      transform: rotateY(180deg);
+      padding: 1rem;
+      box-sizing: border-box;
+      overflow-y: auto;
+      font-size: 1.2rem;
+      background-size: cover;
+      background-position: center;
+    }
+    #nextAfterCard {
+      display: none;
+    }
+    #slide3 {
+      background-image: url('fondo_slide3.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      min-height: 100vh;
+    }
+    #slide3 > * {
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Slide 1 -->
+<div class="slide active" id="slide1">
+  <h1></h1>
+  <div class="start-image" onclick="nextSlide()">
+    <img src="inicio_horizontal.png" alt="Inicio - Toca para empezar">
+  </div>
+</div>
+
+<!-- Slide 2 -->
+<div class="slide" id="slide2">
+  <h2></h2>
+  <img class="fullscreen-image" src="collage.png" alt="Collage afrodescendiente" onclick="nextSlide()">
+</div>
+
+<!-- Slide 3: Selección -->
+<div class="slide" id="slide3">
+  <h2 style="font-size: 2.5rem;">👥 Selección de Personaje</h2>
+  <p style="font-size: 1.5rem;">Haz clic en una carta para descubrir tu personaje:</p>
+  <div class="card-container">
+    <div class="card" onclick="revealCard(this, 'María Isabel Urrutia', 'maria_isabel_urrutia', 'Primera medallista olímpica colombiana y defensora de los derechos.')">
+      <div class="card-inner">
+        <div class="card-front"></div>
+        <div class="card-back"></div>
+      </div>
+    </div>
+    <div class="card" onclick="revealCard(this, 'Martin Luther King', 'martin_luther_king', 'Líder del movimiento por los derechos civiles en EE. UU.')">
+      <div class="card-inner">
+        <div class="card-front"></div>
+        <div class="card-back"></div>
+      </div>
+    </div>
+    <div class="card" onclick="revealCard(this, 'Candelario Obeso', 'candelario_obeso', 'Poeta pionero en escribir desde la voz afrocolombiana.')">
+      <div class="card-inner">
+        <div class="card-front"></div>
+        <div class="card-back"></div>
+      </div>
+    </div>
+  </div>
+  <div id="nextAfterCard">
+    <button onclick="nextSlide(); setTimeout(loadQuestions, 500)" style="font-size: 1.3rem;">Siguiente juego</button>
+  </div>
+</div>
+
+<!-- Slide 4: Preguntas + Reflexión -->
+<div class="slide" id="slide4"></div>
+
+<!-- Slide 5: Créditos -->
+<div class="slide" id="slide5">
+  <div id="creditosFinales" style="white-space: pre-line; font-size: 1.2rem; padding-top: 2rem;"></div>
+</div>
+
+<script>
+let current = 0;
+let revealed = false;
+let selectedCharacter = "";
+
+function nextSlide() {
+  document.querySelectorAll('.slide')[current].classList.remove('active');
+  current++;
+  document.querySelectorAll('.slide')[current].classList.add('active');
+}
+
+function goToStart() {
+  document.querySelectorAll('.slide')[current].classList.remove('active');
+  current = 0;
+  revealed = false;
+  document.querySelectorAll('.card').forEach(c => c.onclick = null);
+  document.querySelectorAll('.slide')[current].classList.add('active');
+}
+
+function revealCard(card, name, image, bio) {
+  if (revealed) return;
+  revealed = true;
+  selectedCharacter = name;
+  card.classList.add('revealed');
+  document.querySelectorAll('.card').forEach(c => { if (c !== card) c.onclick = null; });
+  const back = card.querySelector('.card-back');
+  back.style.backgroundImage = `url('${image}_bg.png')`;
+  back.innerHTML = `<h3>${name}</h3><img src="${image}.png" alt="${name}" style="width:100%; height:auto;"><p>${bio}</p>`;
+  document.getElementById('nextAfterCard').style.display = 'block';
+}
+
+function typeWriterEffect(element, text, speed = 40, callback) {
+  let i = 0;
+  element.innerHTML = "";
+  function type() {
+    if (i < text.length) {
+      element.innerHTML += text.charAt(i);
+      i++;
+      setTimeout(type, speed);
+    } else if (callback) {
+      callback();
+    }
+  }
+  type();
+}
+
+function loadQuestions() {
+  const questions = {
+    "María Isabel Urrutia": [
+      ["¿Qué hizo María Isabel Urrutia?", "Ganó una medalla olímpica y defendió los derechos", "Fue chef", "Cantó reggaetón"],
+      ["¿Qué desafío enfrentó?", "Machismo y racismo en el deporte", "Tenía miedo a los aviones", "No le gustaba el ejercicio"],
+      ["¿Qué valor representa?", "Perseverancia y justicia", "Riqueza", "Comodidad"],
+      ["¿Qué aprendiste de este personaje?", "Que luchar por nuestros sueños y derechos vale la pena", "Que el deporte no sirve", "Que es mejor rendirse"]
+    ],
+    "Martin Luther King": [
+      ["¿Qué hizo Martin Luther King?", "Luchó por derechos civiles", "Diseñó videojuegos", "Fue actor de películas"],
+      ["¿Qué desafío enfrentó?", "Racismo y violencia", "Tenía alergia al pasto", "No sabía leer"],
+      ["¿Qué valor representa?", "Paz y valentía", "Fama", "Humor"],
+      ["¿Qué aprendiste de este personaje?", "Que la paz y la igualdad son posibles con valentía", "Que todo es injusto siempre", "Que no se puede hacer nada"]
+    ],
+    "Candelario Obeso": [
+      ["¿Qué hizo Candelario?", "Escribió poesía afrocolombiana", "Fue cantante de reggaetón", "Inventó un postre"],
+      ["¿Qué desafío enfrentó?", "Discriminación cultural", "No tenía bicicleta", "Fobia al agua"],
+      ["¿Qué valor representa?", "Identidad y expresión", "Chismes", "Ambición"],
+      ["¿Qué aprendiste de este personaje?", "Que expresar la identidad con arte es poderoso", "Que escribir no importa", "Que es mejor callar"]
+    ]
+  };
+
+  const selected = questions[selectedCharacter];
+  const container = document.getElementById('slide4');
+  container.innerHTML = `<h2>🕵️‍♂️ Misión de Grupo</h2><img src="${selectedCharacter.replace(/ /g, '_').toLowerCase()}.png" alt="Misión personaje"><div id="questionContainer"></div><button onclick="evaluateQuiz()">Enviar Respuestas</button><p id="quizResult" style="color:red;"></p>`;
+
+  const questionDiv = document.getElementById("questionContainer");
+  questionDiv.innerHTML = "";
+
+  let delay = 0;
+  selected.forEach((q, i) => {
+    const div = document.createElement("div");
+    div.classList.add("question");
+    const h3 = document.createElement("h3");
+    div.appendChild(h3);
+
+    const allAnswers = [
+      { text: q[1], value: "correct" },
+      { text: q[2], value: "wrong" },
+      { text: q[3], value: "wrong" }
+    ].sort(() => Math.random() - 0.5);
+
+    setTimeout(() => {
+      typeWriterEffect(h3, q[0], 40, () => {
+        allAnswers.forEach((opt, j) => {
+          const label = document.createElement("label");
+          label.innerHTML = `<input type="radio" name="q${i}" value="${opt.value}"> ${String.fromCharCode(65 + j)}. ${opt.text}`;
+          div.appendChild(label);
+          div.appendChild(document.createElement("br"));
+        });
+      });
+      questionDiv.appendChild(div);
+    }, delay);
+
+    delay += 1000;
+  });
+}
+
+function evaluateQuiz() {
+  let correctCount = 0;
+  let incomplete = false;
+
+  document.querySelectorAll('#slide4 .question').forEach(q => {
+    const sel = q.querySelector('input[type=radio]:checked');
+    if (!sel) incomplete = true;
+    else if (sel.value === 'correct') correctCount++;
+  });
+
+  const result = document.getElementById('quizResult');
+  if (incomplete) {
+    result.innerText = "❗ No se ha podido realizar. Por favor, elige una opción en cada pregunta.";
+    return;
+  }
+
+  let score = 1;
+  if (correctCount === 4) score = 5;
+  else if (correctCount === 3) score = 4;
+  else if (correctCount === 2) score = 3;
+
+  result.style.color = "white";
+  result.innerText = `Puntaje final: ${score}/5`;
+
+  // Reflexión y paso al slide 5 con video
+  setTimeout(() => {
+    const reflexion = document.querySelector('input[name="q3"]:checked').nextSibling.textContent.trim();
+    document.querySelectorAll('.slide')[current].classList.remove('active');
+    current++;
+    document.querySelectorAll('.slide')[current].classList.add('active');
+
+    const creditos = document.getElementById('creditosFinales');
+
+// Crear el video
+const video = document.createElement('video');
+video.src = 'video.mp4';
+video.autoplay = true;
+video.controls = false;
+video.style.position = 'fixed';
+video.style.top = '0';
+video.style.left = '0';
+video.style.width = '100vw';
+video.style.height = '100vh';
+video.style.objectFit = 'cover';
+video.style.zIndex = '9999';
+video.style.margin = '0';
+video.style.padding = '0';
+video.playsInline = true;
+
+// Agregar el video al body
+document.body.appendChild(video);
+
+// Intentar pantalla completa y reproducir
+video.addEventListener('loadeddata', () => {
+  if (video.requestFullscreen) {
+    video.requestFullscreen();
+  } else if (video.webkitRequestFullscreen) {
+    video.webkitRequestFullscreen(); // para Safari
+  } else if (video.msRequestFullscreen) {
+    video.msRequestFullscreen(); // para IE
+  }
+
+  video.play().catch((error) => {
+    console.warn('Reproducción bloqueada:', error);
+  });
+});
+
+
+  }, 2000);
+}
+</script>
+
+</body>
+</html>
